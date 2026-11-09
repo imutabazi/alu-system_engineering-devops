@@ -1,0 +1,3 @@
+#!/bin/bash
+# Connects to an SSH server using the specified private key
+ssh -i ~/.ssh/school ubuntu@"$1"
