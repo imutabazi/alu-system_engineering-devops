@@ -3,10 +3,11 @@
 apt-get update -y
 apt-get install -y nginx
 
-mkdir -p /var/www/html
-chmod -R 755 /var/www/html
+mkdir -p /var/www/html /usr/share/nginx/html
+chmod -R 755 /var/www/html /usr/share/nginx/html
 echo "Holberton School for the win!" > /var/www/html/index.html
-chmod 644 /var/www/html/index.html
+echo "Holberton School for the win!" > /usr/share/nginx/html/index.html
+chmod 644 /var/www/html/index.html /usr/share/nginx/html/index.html
 
 cat << 'NGINX_EOF' > /etc/nginx/sites-available/default
 server {
