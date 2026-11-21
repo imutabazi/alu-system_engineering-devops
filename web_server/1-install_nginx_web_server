@@ -24,4 +24,5 @@ server {
 }
 NGINX_EOF
 
-nginx -t && service nginx restart
+ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+nginx -t && (/etc/init.d/nginx restart || service nginx restart)
