@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
-# Installs Nginx on Ubuntu, listens on port 80, and serves a page containing Holberton School
-apt-get update -y
-apt-get install -y nginx
+# Installs Nginx on Ubuntu, listens on port 80, and serves Holberton School on /
 
-mkdir -p /var/www/html
-chmod 755 /var/www/html
-printf "Holberton School for the win!\n" > /var/www/html/index.html
-chmod 644 /var/www/html/index.html
+SUDO=""
+if [ "$(id -u)" -ne 0 ]; then
+    SUDO="sudo"
+fi
 
-cat << 'NGINX_EOF' > /etc/nginx/sites-available/default
+$SUDO apt-get update -y
+$SUDO apt-get install -y nginx
+
+$SUDO mkdir -p /var/www/html
+$SUDO chmod 755 /var/www/html
+printf "Holberton School for the win!\n" | $SUDO tee /var/www/html/index.html > /dev/null
+$SUDO chmod 644 /var/www/html/index.html
+
+cat << 'NGINX_EOF' | $SUDO tee /etc/nginx/sites-available/default > /dev/null
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -24,5 +30,5 @@ server {
 }
 NGINX_EOF
 
-ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-service nginx restart || /etc/init.d/nginx restart || /usr/sbin/nginx
+$SUDO ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+$SUDO service nginx restart || $SUDO service nginx start || $SUDO /etc/init.d/nginx restart
