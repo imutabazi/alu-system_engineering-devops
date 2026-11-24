@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# Configures Nginx to run as the nginx user and listen on port 8080
-command -v nginx >/dev/null 2>&1 || (apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install -y nginx)
-id nginx >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin nginx
-sed -i "s/^[[:space:]]*user[[:space:]]\+[^;]*;/user nginx;/" /etc/nginx/nginx.conf
-grep -q "^user nginx;" /etc/nginx/nginx.conf || sed -i "1i user nginx;" /etc/nginx/nginx.conf
-if [ -f /etc/nginx/sites-available/default ]; then
-  sed -i "s/listen [0-9]\+\( default_server\)\?;/listen 8080\1;/g; s/listen \[::\]:[0-9]\+\( default_server\)\?;/listen [::]:8080\1;/g" /etc/nginx/sites-available/default
-fi
-chown -R nginx:nginx /var/lib/nginx /var/log/nginx 2>/dev/null || true
-nginx -t && (service nginx restart || nginx -s reload || nginx)
+# Configures Nginx to run as user nginx and listen on port 8080 across all active IPs
+getent passwd nginx >/dev/null 2>&1 || useradd -r -s /usr/sbin/nologin nginx
+sed -i -r "s/^[[:space:]]*user[[:space:]]+[^;]+;/user nginx;/g" /etc/nginx/nginx.conf
+grep -q -E "^[[:space:]]*user[[:space:]]+nginx;" /etc/nginx/nginx.conf || sed -i "1i user nginx;" /etc/nginx/nginx.conf
+for cfg in /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default /etc/nginx/conf.d/*.conf; do
+  if [ -f "$cfg" ]; then
+    sed -i -r "s/listen[[:space:]]+(\[::\]:)?[0-9]+/listen \18080/g" "$cfg"
+  fi
+done
+mkdir -p /var/lib/nginx /var/log/nginx /run
+chown -R nginx:nginx /var/lib/nginx /var/log/nginx
+pkill -9 nginx 2>/dev/null || true
+nginx -t && (service nginx start || service nginx restart || nginx)
