@@ -1,23 +1,29 @@
-# Raises Nginx file and connection limits for 1000 requests at 100 concurrency
-exec { 'set-nginx-conf':
-  command => 'sed -i "s/worker_connections [0-9]*;/worker_connections 4096;/" /etc/nginx/nginx.conf',
+# Raises Nginx file and connection limits so ab -c 100 -n 1000 has 0 failures
+exec { 'set-worker-connections':
+  command => 'sed -i "s/worker_connections .*/worker_connections 4096;/" /etc/nginx/nginx.conf',
   path    => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
 }
 
-exec { 'set-nginx-nofile':
-  command => 'sed -i "s/#*\\s*worker_rlimit_nofile .*/worker_rlimit_nofile 65536;/" /etc/nginx/nginx.conf',
+exec { 'set-worker-rlimit':
+  command => 'sed -i "s/.*worker_rlimit_nofile.*/worker_rlimit_nofile 65536;/" /etc/nginx/nginx.conf',
   path    => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
-  require => Exec['set-nginx-conf'],
+  require => Exec['set-worker-connections'],
 }
 
-exec { 'ensure-nginx-nofile':
+exec { 'add-worker-rlimit':
   command => 'grep -q "worker_rlimit_nofile" /etc/nginx/nginx.conf || sed -i "1i worker_rlimit_nofile 65536;" /etc/nginx/nginx.conf',
   path    => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
-  require => Exec['set-nginx-nofile'],
+  require => Exec['set-worker-rlimit'],
+}
+
+exec { 'set-nginx-ulimit':
+  command => '[ -f /etc/default/nginx ] && sed -i "s/.*ULIMIT=.*/ULIMIT=\\"-n 65536\\"/" /etc/default/nginx || true',
+  path    => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
+  require => Exec['add-worker-rlimit'],
 }
 
 exec { 'restart-nginx':
-  command => 'service nginx restart',
+  command => '/bin/sh -c "ulimit -n 65536 2>/dev/null || true; service nginx restart"',
   path    => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
-  require => Exec['ensure-nginx-nofile'],
+  require => Exec['set-nginx-ulimit'],
 }
