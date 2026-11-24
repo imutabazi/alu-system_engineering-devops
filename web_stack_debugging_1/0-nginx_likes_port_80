@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Ensures Nginx listens on port 80 across active IPv4 interfaces and is running
+sed -i "s/listen [0-9]\+;/listen 80;/g; s/listen \[::\]:[0-9]\+;/listen [::]:80;/g" /etc/nginx/sites-available/default 2>/dev/null || true
+service nginx start || service nginx restart
