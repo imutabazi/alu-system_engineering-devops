@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Installs Nginx and configures a custom X-Served-By HTTP response header
+# Installs Nginx and sets X-Served-By response header to hostname
 apt-get update -y
 apt-get install -y nginx
 mkdir -p /var/www/html
-echo "Holberton School for the win!" > /var/www/html/index.html
+echo "Hello World!" > /var/www/html/index.html
 echo "Ceci n'est pas une page" > /var/www/html/404.html
 printf "server {
     listen 80 default_server;

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs and configures HAProxy on lb-01 using roundrobin between web-01 and web-02
+# Installs HAProxy on lb-01 with roundrobin load balancing across web-01 and web-02
 apt-get update -y
 apt-get install -y --no-install-recommends software-properties-common
 add-apt-repository -y ppa:vbernat/haproxy-2.8 || true
