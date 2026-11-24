@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Configures Nginx to run as the nginx user and listen on port 8080
+command -v nginx >/dev/null 2>&1 || (apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install -y nginx)
+id nginx >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin nginx
+sed -i "s/^[[:space:]]*user[[:space:]]\+[^;]*;/user nginx;/" /etc/nginx/nginx.conf
+grep -q "^user nginx;" /etc/nginx/nginx.conf || sed -i "1i user nginx;" /etc/nginx/nginx.conf
+if [ -f /etc/nginx/sites-available/default ]; then
+  sed -i "s/listen [0-9]\+\( default_server\)\?;/listen 8080\1;/g; s/listen \[::\]:[0-9]\+\( default_server\)\?;/listen [::]:8080\1;/g" /etc/nginx/sites-available/default
+fi
+chown -R nginx:nginx /var/lib/nginx /var/log/nginx 2>/dev/null || true
+nginx -t && (service nginx restart || nginx -s reload || nginx)
